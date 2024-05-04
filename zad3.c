@@ -1,14 +1,14 @@
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
+
 #include "mpi.h"
 
 #define SIZE 4
 #define LEFT 0
 #define RIGHT 1
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     int numtasks, rank, source, dest, i, tag = 1;
     int nbrs[2], dims[1] = {4}, periods[1] = {0}, reorder = 0, coords[1];
     int inbuf[4] = {
@@ -20,13 +20,12 @@ int main(int argc, char *argv[])
 
     MPI_Request reqs[8];
     MPI_Status stats[8];
-    MPI_Comm cartcomm; // required variable
+    MPI_Comm cartcomm;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
 
-    if (numtasks != SIZE)
-    {
+    if (numtasks != SIZE) {
         printf("Must specify %d processors. Terminating.\n", SIZE);
         MPI_Finalize();
         return 0;
@@ -43,30 +42,26 @@ int main(int argc, char *argv[])
     int outbuf[] = {1, 2, 3, 4, 5};
     MPI_Status wait_status;
     int last_sum = 0;
-    while(received++ < NUM_MAX_RECEIVED) {
+    while (received++ < NUM_MAX_RECEIVED) {
         dest = nbrs[RIGHT];
         source = nbrs[LEFT];
-        if(nbrs[LEFT] != MPI_PROC_NULL) {
-            // NOT MAIN SENGIND PROC -> PASSTHROUGH
+        if (nbrs[LEFT] != MPI_PROC_NULL) {
             MPI_Irecv(&inbuf[0], 1, MPI_INT, source, tag, MPI_COMM_WORLD, &reqs[0]);
             MPI_Wait(&reqs[0], &wait_status);
         } else {
-            // MAIN - SENDING - PROC
             inbuf[0] = outbuf[received - 1];
         }
-        if(nbrs[RIGHT] != MPI_PROC_NULL) {
-            // NOT LAST PROCESS -> PASSTHROUGH
+        if (nbrs[RIGHT] != MPI_PROC_NULL) {
             MPI_Isend(&inbuf[0], 1, MPI_INT, dest, tag, MPI_COMM_WORLD, &reqs[1]);
             MPI_Wait(&reqs[1], &wait_status);
             printf("[%d<-->%d]: [%d]\n", rank, dest, inbuf[0]);
         } else {
-            // LAST PROCESS -> ADD TO SUM AND PRINT
             last_sum += inbuf[0];
             printf("[LAST] [RANK:%d]: [%d]\n", rank, inbuf[0]);
         }
     }
 
-    if(nbrs[RIGHT] == MPI_PROC_NULL) {
+    if (nbrs[RIGHT] == MPI_PROC_NULL) {
         printf("TOTAL SUM: %d\n", last_sum);
     }
 
