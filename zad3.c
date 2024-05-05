@@ -7,16 +7,13 @@
 #define SIZE 4
 #define LEFT 0
 #define RIGHT 1
+#define MESSAGE_SIZE 1000
+#define OUTBUF_SIZE 100000
 
 int main(int argc, char *argv[]) {
     int numtasks, rank, source, dest, i, tag = 1;
     int nbrs[2], dims[1] = {4}, periods[1] = {0}, reorder = 0, coords[1];
-    int inbuf[4] = {
-        MPI_PROC_NULL,
-        MPI_PROC_NULL,
-        MPI_PROC_NULL,
-        MPI_PROC_NULL,
-    };
+    int inbuf[MESSAGE_SIZE];
 
     MPI_Request reqs[8];
     MPI_Status stats[8];
@@ -37,27 +34,33 @@ int main(int argc, char *argv[]) {
     MPI_Cart_shift(cartcomm, 0, 1, &nbrs[LEFT], &nbrs[RIGHT]);
 
     int NUM_NEIGHBORS = 1;
-    int NUM_MAX_RECEIVED = 5;
+    int NUM_MAX_RECEIVED = OUTBUF_SIZE / MESSAGE_SIZE;
     int received = 0;
-    int outbuf[] = {1, 2, 3, 4, 5};
+    int outbuf[OUTBUF_SIZE];
+    if(rank == 0){
+        for(int i = 0; i < OUTBUF_SIZE; i++){
+            outbuf[i] = 1;
+        }
+    }
+
     MPI_Status wait_status;
     int last_sum = 0;
     while (received++ < NUM_MAX_RECEIVED) {
         dest = nbrs[RIGHT];
         source = nbrs[LEFT];
         if (nbrs[LEFT] != MPI_PROC_NULL) {
-            MPI_Irecv(&inbuf[0], 1, MPI_INT, source, tag, MPI_COMM_WORLD, &reqs[0]);
+            MPI_Irecv(&inbuf, MESSAGE_SIZE, MPI_INT, source, tag, MPI_COMM_WORLD, &reqs[0]);
             MPI_Wait(&reqs[0], &wait_status);
         } else {
-            inbuf[0] = outbuf[received - 1];
+            memcpy(inbuf, &outbuf[(received - 1) * MESSAGE_SIZE], MESSAGE_SIZE * sizeof(int));
         }
         if (nbrs[RIGHT] != MPI_PROC_NULL) {
-            MPI_Isend(&inbuf[0], 1, MPI_INT, dest, tag, MPI_COMM_WORLD, &reqs[1]);
+            MPI_Isend(&inbuf, MESSAGE_SIZE, MPI_INT, dest, tag, MPI_COMM_WORLD, &reqs[1]);
             MPI_Wait(&reqs[1], &wait_status);
-            printf("[%d<-->%d]: [%d]\n", rank, dest, inbuf[0]);
         } else {
-            last_sum += inbuf[0];
-            printf("[LAST] [RANK:%d]: [%d]\n", rank, inbuf[0]);
+            for(int i = 0; i < MESSAGE_SIZE; i++){
+                last_sum += inbuf[i];
+            }
         }
     }
 
