@@ -30,11 +30,12 @@ int *primeFind(int iteration, int num_numbers, int NUM_THREADS, int CHUNKSIZE)
                 }
                 int number = numbers[i];
                 primes_found++;
-                int offset = ((max_value - number - number) + (NUM_THREADS - 1)) / NUM_THREADS;
+                int default_number_of_iterations = ((max_value - number + number) + (number - 1)) / number;
+                int offset = (default_number_of_iterations + (NUM_THREADS - 1)) / NUM_THREADS;
                 for(int k = 0; k < NUM_THREADS; k++)
                 {
                     #pragma omp task
-                    for (int j = number + number + offset * k; j < number + number + offset * (k + 1) && j < max_value; j += number)
+                    for (int j = number + number + offset * k * number; j < number + number + offset * (k + 1) * number && j < max_value; j += number)
                     {
                         numbers[j - 2] = -1;
                     }
