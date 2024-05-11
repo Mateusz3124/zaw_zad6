@@ -11,8 +11,7 @@ int *primeFind(int iteration, int num_numbers, int NUM_THREADS, int CHUNKSIZE) {
         printf("brak pamieci\n");
         return &(int){-1};
     }
-#pragma omp parallel for schedule(static) num_threads(NUM_THREADS) \
-    shared(numbers, search_table_size)
+    #pragma omp parallel for schedule(static) num_threads(NUM_THREADS) shared(numbers, search_table_size)
     for (int i = 0; i < search_table_size; i++) {
         numbers[i] = i + 2;
     }
@@ -28,8 +27,7 @@ int *primeFind(int iteration, int num_numbers, int NUM_THREADS, int CHUNKSIZE) {
         int number = numbers[i];
         primes_found++;
 
-#pragma omp parallel for schedule(dynamic, CHUNKSIZE) num_threads(NUM_THREADS) \
-    shared(numbers, number, max_value)
+        #pragma omp parallel for schedule(dynamic, CHUNKSIZE) num_threads(NUM_THREADS) shared(numbers, number, max_value)
         for (int j = number + number; j <= max_value; j += number) {
             numbers[j - 2] = -1;
         }
@@ -48,9 +46,7 @@ int *primeFind(int iteration, int num_numbers, int NUM_THREADS, int CHUNKSIZE) {
     }
     int count = 0;
 
-#pragma omp parallel for schedule(static, search_table_size) \
-    num_threads(NUM_THREADS)                                 \
-        shared(search_table_size, numbers, count, table_of_prime_numbers)
+    #pragma omp parallel for schedule(static, search_table_size) num_threads(NUM_THREADS) shared(search_table_size, numbers, count, table_of_prime_numbers)
     for (int i = 0; i < search_table_size; i++) {
         if (count == primes_found) {
             continue;
@@ -95,10 +91,8 @@ int main() {
             best_numt_best_chunksize_time = best_chunksize_time;
         }
 
-        printf("BEST CHUNKSIZE FOR NUM THREADS(%d) is %d with time %f[s]\n",
-               num_threads, best_chunksize, best_chunksize_time);
+        printf("BEST CHUNKSIZE FOR NUM THREADS(%d) is %d with time %f[s]\n", num_threads, best_chunksize, best_chunksize_time);
     }
-    printf("BEST NUMTHREADS IS %d WITH %d CHUNKSIZE AND TIME: %f[s]",
-           best_num_threads, best_numt_best_chunksize, best_num_threads_time);
+    printf("BEST NUMTHREADS IS %d WITH %d CHUNKSIZE AND TIME: %f[s]", best_num_threads, best_numt_best_chunksize, best_num_threads_time);
     return 0;
 }
