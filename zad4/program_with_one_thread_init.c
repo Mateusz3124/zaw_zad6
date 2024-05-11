@@ -12,9 +12,9 @@ int *primeFind(int iteration, int num_numbers, int NUM_THREADS, int CHUNKSIZE) {
         return &(int){-1};
     }
     int *table_of_prime_numbers;
-#pragma omp parallel num_threads(NUM_THREADS)
+    #pragma omp parallel num_threads(NUM_THREADS)
     {
-#pragma omp single
+        #pragma omp single
         {
             for (int i = 0; i < search_table_size; i++) {
                 numbers[i] = i + 2;
@@ -29,27 +29,21 @@ int *primeFind(int iteration, int num_numbers, int NUM_THREADS, int CHUNKSIZE) {
                 }
                 int number = numbers[i];
                 primes_found++;
-                int default_number_of_iterations =
-                    ((max_value - number + number) + (number - 1)) / number;
-                int offset =
-                    (default_number_of_iterations + (NUM_THREADS - 1)) /
-                    NUM_THREADS;
+                int default_number_of_iterations = ((max_value - number + number) + (number - 1)) / number;
+                int offset = (default_number_of_iterations + (NUM_THREADS - 1)) / NUM_THREADS;
                 for (int k = 0; k < NUM_THREADS; k++) {
-#pragma omp task
-                    for (int j = number + number + offset * k * number;
-                         j < number + number + offset * (k + 1) * number &&
-                         j < max_value;
-                         j += number) {
+                    #pragma omp task
+                    for (int j = number + number + offset * k * number; j < number + number + offset * (k + 1) * number && j < max_value; j += number) {
                         numbers[j - 2] = -1;
                     }
                 }
-#pragma omp taskwait
+                #pragma omp taskwait
             }
         }
 
         table_of_prime_numbers = malloc(primes_found * sizeof(int));
         if (table_of_prime_numbers != NULL) {
-#pragma omp single
+            #pragma omp single
             {
                 int count = 0;
                 for (int i = 0; i < search_table_size; i++) {
@@ -64,7 +58,7 @@ int *primeFind(int iteration, int num_numbers, int NUM_THREADS, int CHUNKSIZE) {
                 free(numbers);
             }
         } else {
-#pragma omp single
+            #pragma omp single
             {
                 printf("brak pamięci");
                 table_of_prime_numbers = &(int){-1};
@@ -103,10 +97,8 @@ int main() {
             best_numt_best_chunksize_time = best_chunksize_time;
         }
 
-        printf("BEST CHUNKSIZE FOR NUM THREADS(%d) is %d with time %f[s]\n",
-               num_threads, best_chunksize, best_chunksize_time);
+        printf("BEST CHUNKSIZE FOR NUM THREADS(%d) is %d with time %f[s]\n", num_threads, best_chunksize, best_chunksize_time);
     }
-    printf("BEST NUMTHREADS IS %d WITH %d CHUNKSIZE AND TIME: %f[s]",
-           best_num_threads, best_numt_best_chunksize, best_num_threads_time);
+    printf("BEST NUMTHREADS IS %d WITH %d CHUNKSIZE AND TIME: %f[s]", best_num_threads, best_numt_best_chunksize, best_num_threads_time);
     return 0;
 }
