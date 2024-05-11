@@ -80,6 +80,7 @@ int main() {
       clock_t end = clock();
       double dt = (double)(end - start) / CLOCKS_PER_SEC;
 
+<<<<<<< HEAD
       if (dt < best_num_threads_time) {
         best_num_threads = num_threads;
         best_num_threads_time = dt;
@@ -101,4 +102,25 @@ int main() {
   printf("BEST NUMTHREADS IS %d WITH %d CHUNKSIZE AND TIME: %f[s]",
          best_num_threads, best_numt_best_chunksize, best_num_threads_time);
   return 0;
+=======
+            if (dt < best_num_threads_time) {
+                best_num_threads = num_threads;
+                best_num_threads_time = dt;
+            }
+            if (dt < best_chunksize_time) {
+                best_chunksize = chunksize;
+                best_chunksize_time = dt;
+            }
+        }
+
+        if (best_num_threads == num_threads) {
+            best_numt_best_chunksize = best_chunksize;
+            best_numt_best_chunksize_time = best_chunksize_time;
+        }
+
+        printf("BEST CHUNKSIZE FOR NUM THREADS(%d) is %d with time %f[s]\n", num_threads, best_chunksize, best_chunksize_time);
+    }
+    printf("BEST NUMTHREADS IS %d WITH %d CHUNKSIZE AND TIME: %f[s]", best_num_threads, best_numt_best_chunksize, best_num_threads_time);
+    return 0;
+>>>>>>> e2067a8d96fd3b02224a05bf403ae64321a1567f
 }
