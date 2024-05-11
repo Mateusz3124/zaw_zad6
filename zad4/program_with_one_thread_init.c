@@ -8,6 +8,10 @@ int *primeFind(int iteration, int num_numbers, int NUM_THREADS, int CHUNKSIZE)
     int search_table_size = num_numbers * 20 * iteration;
     int primes_found = 0;
     int* numbers = malloc(sizeof(int[search_table_size]));
+    if (numbers == NULL) {
+        printf("brak pamieci\n");
+	    return &(int){-1};
+    }
     int *table_of_prime_numbers;
     #pragma omp parallel num_threads(NUM_THREADS)
     {
@@ -42,23 +46,37 @@ int *primeFind(int iteration, int num_numbers, int NUM_THREADS, int CHUNKSIZE)
                 }
                 #pragma omp taskwait
             }
-
-            table_of_prime_numbers = malloc(primes_found * sizeof(int));
-            int count = 0;
-            for (int i = 0; i < search_table_size; i++)
-            {
-                if(count == primes_found)
-                {
-                    break;
-                }
-                if (numbers[i] != -1)
-                {
-                    table_of_prime_numbers[count] = numbers[i];
-                    count++;
-                }
-            }
-            free(numbers);
         }
+
+        table_of_prime_numbers = malloc(primes_found * sizeof(int));
+        if (table_of_prime_numbers == NULL) {
+            #pragma omp single
+            {
+                int count = 0;
+                for (int i = 0; i < search_table_size; i++)
+                {
+                    if(count == primes_found)
+                    {
+                        break;
+                    }
+                    if (numbers[i] != -1)
+                    {
+                        table_of_prime_numbers[count] = numbers[i];
+                        count++;
+                    }
+                }
+                            free(numbers); 
+            }
+        }
+        else {
+            #pragma omp single
+            {
+                printf("brak pamięci");
+                table_of_prime_numbers = &(int){-1};
+                free(numbers); 
+            }
+        }
+
     }
     return table_of_prime_numbers;
 }
@@ -76,7 +94,6 @@ int main()
             int *primes = primeFind(1, 50000, num_threads, chunksize);
             clock_t end = clock();
             double dt = (double)(end - start) / CLOCKS_PER_SEC;   
-            //printf("\t CHUNKSIZE: %d took %.5f[s]\n", chunksize, dt);
 
             if(dt < best_num_threads_time) {
                 best_num_threads = num_threads;
