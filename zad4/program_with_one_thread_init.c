@@ -75,7 +75,7 @@ int *primeFind(int iteration, int num_numbers, int NUM_THREADS, int CHUNKSIZE) {
 
 int main() {
   int best_num_threads = 0, best_numt_best_chunksize = 0;
-  double best_num_threads_time = 100.0, best_numt_best_chunksize_time = 100.0;
+  double best_num_threads_time = 100.0;
   for (int num_threads = 1; num_threads < 16; ++num_threads) {
     printf("NUM_THREADS: %d\n", num_threads);
     int best_chunksize = 0;
@@ -83,6 +83,7 @@ int main() {
     for (int chunksize = 1; chunksize < 100; ++chunksize) {
       clock_t start = clock();
       int *primes = primeFind(1, 50000, num_threads, chunksize);
+      free(primes);
       clock_t end = clock();
       double dt = (double)(end - start) / CLOCKS_PER_SEC;
 
@@ -98,7 +99,6 @@ int main() {
 
     if (best_num_threads == num_threads) {
       best_numt_best_chunksize = best_chunksize;
-      best_numt_best_chunksize_time = best_chunksize_time;
     }
 
     printf("BEST CHUNKSIZE FOR NUM THREADS(%d) is %d with time %f[s]\n",
