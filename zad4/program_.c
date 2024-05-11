@@ -8,7 +8,10 @@ int *primeFind(int iteration, int num_numbers, int NUM_THREADS, int CHUNKSIZE)
     int search_table_size = num_numbers * 20 * iteration;
     int primes_found = 0;
     int* numbers = malloc(sizeof(int[search_table_size]));
-
+    if (numbers == NULL) {
+        printf("brak pamieci\n");
+	    return &(int){-1};
+    }
     #pragma omp parallel for schedule(static) num_threads(NUM_THREADS) shared(numbers, search_table_size)
     for (int i = 0; i < search_table_size; i++)
     {
@@ -43,6 +46,10 @@ int *primeFind(int iteration, int num_numbers, int NUM_THREADS, int CHUNKSIZE)
     }
 
     int *table_of_prime_numbers = malloc(primes_found * sizeof(int));
+    if (table_of_prime_numbers == NULL) {
+        printf("brak pamieci\n");
+	    return &(int){-1};
+    }
     int count = 0;
 
     #pragma omp parallel for schedule(static, search_table_size) num_threads(NUM_THREADS) shared(search_table_size, numbers, count, table_of_prime_numbers)
@@ -75,9 +82,9 @@ int main()
         for(int chunksize = 1; chunksize < 100; ++chunksize) {
             clock_t start = clock();
             int *primes = primeFind(1, 50000, num_threads, chunksize);
+	    free(primes);
             clock_t end = clock();
             double dt = (double)(end - start) / CLOCKS_PER_SEC;   
-            //printf("\t CHUNKSIZE: %d took %.5f[s]\n", chunksize, dt);
 
             if(dt < best_num_threads_time) {
                 best_num_threads = num_threads;
