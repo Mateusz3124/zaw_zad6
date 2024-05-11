@@ -49,7 +49,7 @@ int *primeFind(int iteration, int num_numbers, int NUM_THREADS, int CHUNKSIZE)
         }
 
         table_of_prime_numbers = malloc(primes_found * sizeof(int));
-        if (table_of_prime_numbers == NULL) {
+        if (table_of_prime_numbers != NULL) {
             #pragma omp single
             {
                 int count = 0;
